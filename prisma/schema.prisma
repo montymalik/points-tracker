@@ -1,0 +1,88 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL") // e.g. postgres://user:password@localhost:5432/yourdb
+}
+
+model Balance {
+  id              Int      @id @default(1)
+  videoGames      Float    @default(0)
+  generalSpending Float    @default(0)
+  charity         Float    @default(0)
+  savings         Float    @default(0)
+  updatedAt       DateTime @updatedAt
+}
+
+model Transaction {
+  id              Int             @id @default(autoincrement())
+  type            TransactionType
+  amount          Float
+  videoGames      Float?          // The portion added/subtracted for Video Games
+  generalSpending Float?          // The portion added/subtracted for General Spending
+  charity         Float?          // The portion added (deposits only)
+  savings         Float?          // The portion added (deposits only)
+  createdAt       DateTime        @default(now())
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  AUTO_DEPOSIT
+}
+
+// Points System Models
+model Task {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(255)
+  description String?
+  points      Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  completions DailyTaskCompletion[]
+}
+
+model DailyTaskCompletion {
+  id            Int      @id @default(autoincrement())
+  taskId        Int
+  completedDate DateTime @db.Date
+  pointsEarned  Int
+  createdAt     DateTime @default(now())
+  
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  
+  @@unique([taskId, completedDate])
+}
+
+model Reward {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(255)
+  description String?
+  pointsCost  Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  redemptions RewardRedemption[]
+}
+
+model RewardRedemption {
+  id           Int      @id @default(autoincrement())
+  rewardId     Int
+  pointsSpent  Int
+  redeemedDate DateTime @default(now())
+  
+  reward Reward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+}
+
+model PointsBalance {
+  id          Int      @id @default(1)
+  totalPoints Int      @default(0)
+  updatedAt   DateTime @updatedAt
+}

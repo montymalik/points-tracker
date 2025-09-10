@@ -1,0 +1,34 @@
+{
+  "name": "allowance-tracker",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "next start",
+    "prisma": "prisma",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:restart": "docker-compose restart",
+    "docker:rebuild": "docker-compose down && docker-compose build --no-cache && docker-compose up -d"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.3.1",
+    "chart.js": "^4.4.7",
+    "next": "latest",
+    "node-cron": "^3.0.0",
+    "react": "latest",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.5.1",
+    "prisma": "^6.3.1",
+    "tailwindcss": "^3.4.17"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+}
