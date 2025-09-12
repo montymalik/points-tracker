@@ -1,6 +1,5 @@
-// pages/points.js - Step-by-step Header Integration
+// pages/points.js - Final Working Version
 import { useState, useEffect } from 'react';
-import Header from '../components/Header';
 import DailyTasks from '../components/DailyTasks';
 import PointsCalendar from '../components/PointsCalendar';
 import Rewards from '../components/Rewards';
@@ -43,49 +42,6 @@ export default function PointsPage() {
     });
   };
 
-  // Let's try using the Header component but with our own button
-  const CustomHeader = () => (
-    <header className="bg-blue-600 p-6 shadow-lg text-white">
-      <div className="container mx-auto flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Allowance Tracker</h1>
-        <nav className="space-x-4">
-          <a
-            href="/"
-            className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
-          >
-            Spending
-          </a>
-          <a
-            href="/"
-            className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
-          >
-            Deposit Log
-          </a>
-          <a
-            href="/points"
-            className="bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition duration-200 inline-block"
-          >
-            Points System
-          </a>
-          {/* THIS IS OUR WORKING BUTTON - let's keep it */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              console.log('Custom Header ADMIN BUTTON CLICKED');
-              setShowSettingsModal(true);
-              return false;
-            }}
-            className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
-            type="button"
-          >
-            Admin
-          </button>
-        </nav>
-      </div>
-    </header>
-  );
-
   const renderCurrentView = () => {
     switch (currentView) {
       case 'tasks':
@@ -116,8 +72,40 @@ export default function PointsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Use our custom header that looks like the original but with working admin button */}
-      <CustomHeader />
+      {/* Points Page Header - Custom implementation to avoid Header component issues */}
+      <header className="bg-blue-600 p-6 shadow-lg text-white">
+        <div className="container mx-auto flex justify-between items-center">
+          <h1 className="text-3xl font-bold">Allowance Tracker</h1>
+          <nav className="space-x-4">
+            <a
+              href="/"
+              className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
+            >
+              Spending
+            </a>
+            <a
+              href="/"
+              className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
+            >
+              Deposit Log
+            </a>
+            <span className="bg-purple-500 text-white py-2 px-4 rounded-lg">
+              Points System
+            </span>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowSettingsModal(true);
+              }}
+              className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
+              type="button"
+            >
+              Admin
+            </button>
+          </nav>
+        </div>
+      </header>
       
       <main className="container mx-auto px-4 py-8">
         {/* Settings Modal */}
@@ -130,12 +118,8 @@ export default function PointsPage() {
               savings: 0,
             }}
             initialTab="tasks"
-            onClose={() => {
-              console.log('CLOSING MODAL');
-              setShowSettingsModal(false);
-            }}
+            onClose={() => setShowSettingsModal(false)}
             onSave={async () => {
-              console.log('SAVING AND CLOSING MODAL');
               await fetchPointsBalance();
               setShowSettingsModal(false);
             }}

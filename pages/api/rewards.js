@@ -42,6 +42,8 @@ export default async function handler(req, res) {
     }
     
     try {
+      // When updating a reward, we should NOT update historical redemption costs
+      // Only update the reward definition for future redemptions
       const reward = await prisma.reward.update({
         where: { id: parseInt(id) },
         data: {
@@ -51,6 +53,10 @@ export default async function handler(req, res) {
           ...(isActive !== undefined && { isActive }),
         },
       });
+      
+      // Note: We deliberately do NOT update RewardRedemption records
+      // Historical redemptions should preserve the points they cost at the time
+      
       return res.status(200).json(reward);
     } catch (error) {
       console.error('Error updating reward:', error);
@@ -64,11 +70,17 @@ export default async function handler(req, res) {
     }
     
     try {
+      // Instead of hard deleting, we set isActive to false
+      // This preserves historical data while hiding the reward from active lists
       await prisma.reward.update({
         where: { id: parseInt(id) },
         data: { isActive: false },
       });
-      return res.status(200).json({ message: 'Reward deactivated successfully' });
+      
+      // Historical RewardRedemption records are preserved
+      // They still reference the reward and maintain their original pointsSpent values
+      
+      return res.status(200).json({ message: 'Reward deactivated successfully (historical data preserved)' });
     } catch (error) {
       console.error('Error deactivating reward:', error);
       return res.status(500).json({ error: 'Internal server error' });

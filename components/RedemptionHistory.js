@@ -47,8 +47,17 @@ export default function RedemptionHistory() {
               className="flex items-center justify-between p-4 border border-gray-200 rounded-lg bg-gray-50"
             >
               <div>
-                <h3 className="font-semibold text-gray-900">{redemption.reward.name}</h3>
-                {redemption.reward.description && (
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold text-gray-900">
+                    {redemption.reward ? redemption.reward.name : 'Deleted Reward'}
+                  </h3>
+                  {!redemption.reward && (
+                    <span className="px-2 py-1 text-xs bg-yellow-200 text-yellow-800 rounded">
+                      Inactive
+                    </span>
+                  )}
+                </div>
+                {redemption.reward?.description && (
                   <p className="text-sm text-gray-600">{redemption.reward.description}</p>
                 )}
                 <p className="text-xs text-gray-500 mt-1">
@@ -63,6 +72,10 @@ export default function RedemptionHistory() {
               </div>
               <div className="text-right">
                 <span className="font-bold text-red-600">-{redemption.pointsSpent} pts</span>
+                <p className="text-xs text-gray-500">
+                  {/* Show original points spent, not current reward cost */}
+                  Original cost
+                </p>
               </div>
             </div>
           ))}

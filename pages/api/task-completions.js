@@ -12,10 +12,15 @@ export default async function handler(req, res) {
           completedDate: date ? new Date(date) : new Date(),
         },
         include: {
-          task: true,
+          task: true, // Include task data even if task is inactive
         },
       });
-      return res.status(200).json(completedTasks);
+      
+      // Filter out completions where the task was deleted from database entirely
+      // But keep completions for inactive tasks (preserves historical data)
+      const validCompletions = completedTasks.filter(completion => completion.task !== null);
+      
+      return res.status(200).json(validCompletions);
     } catch (error) {
       console.error('Error fetching task completions:', error);
       return res.status(500).json({ error: 'Internal server error' });
@@ -30,13 +35,18 @@ export default async function handler(req, res) {
     const completedDate = date ? new Date(date) : new Date();
     
     try {
-      // Get the task to get points
+      // Get the task to get points and verify it's active
       const task = await prisma.task.findUnique({
         where: { id: parseInt(taskId) },
       });
       
       if (!task) {
         return res.status(404).json({ error: 'Task not found' });
+      }
+      
+      // Only allow completion of active tasks
+      if (!task.isActive) {
+        return res.status(400).json({ error: 'Cannot complete inactive task' });
       }
       
       // Check if task is already completed for this date
@@ -55,11 +65,13 @@ export default async function handler(req, res) {
       
       // Create completion and update points balance in a transaction
       const result = await prisma.$transaction(async (tx) => {
+        // Store the CURRENT points value of the task at time of completion
+        // This preserves historical accuracy even if task points are changed later
         const completion = await tx.dailyTaskCompletion.create({
           data: {
             taskId: parseInt(taskId),
             completedDate: completedDate,
-            pointsEarned: task.points,
+            pointsEarned: task.points, // Store current points value
           },
         });
         
@@ -117,7 +129,8 @@ export default async function handler(req, res) {
           },
         });
         
-        // Update points balance
+        // Use the ORIGINAL points earned (from when it was completed)
+        // Not the current task points (which may have changed)
         await tx.pointsBalance.update({
           where: { id: 1 },
           data: {

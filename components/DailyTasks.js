@@ -35,6 +35,7 @@ export default function DailyTasks({ selectedDate = new Date(), onPointsUpdate }
         const completedIds = new Set(data.map(completion => completion.taskId));
         setCompletedTasks(completedIds);
         
+        // Calculate daily total from actual completions (preserves historical points)
         const dailyTotal = data.reduce((sum, completion) => sum + completion.pointsEarned, 0);
         setTotalPoints(dailyTotal);
       }
