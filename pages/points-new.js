@@ -1,4 +1,4 @@
-// pages/points-new.js - Final Clean Version
+// pages/points-new.js - Brand New File to Test
 import { useState, useEffect } from 'react';
 import DailyTasks from '../components/DailyTasks';
 import PointsCalendar from '../components/PointsCalendar';
@@ -72,27 +72,28 @@ export default function PointsNewPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Points Page Header - Only 2 buttons as requested */}
-      <header className="bg-blue-600 p-6 shadow-lg text-white">
+      {/* TEST HEADER - Should show only 2 buttons */}
+      <header className="bg-red-600 p-6 shadow-lg text-white">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Allowance Tracker</h1>
+          <h1 className="text-3xl font-bold">🚀 NEW POINTS PAGE</h1>
           <nav className="space-x-4">
             <a
               href="/"
-              className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
+              className="bg-yellow-400 text-red-600 py-2 px-6 rounded-lg hover:bg-yellow-300 transition duration-200 font-bold"
             >
-              Allowance
+              ALLOWANCE
             </a>
             <button
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
+                console.log('NEW ADMIN BUTTON CLICKED');
                 setShowSettingsModal(true);
               }}
-              className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
+              className="bg-yellow-400 text-red-600 py-2 px-6 rounded-lg hover:bg-yellow-300 transition duration-200 font-bold"
               type="button"
             >
-              Admin
+              ADMIN
             </button>
           </nav>
         </div>
@@ -116,6 +117,13 @@ export default function PointsNewPage() {
             }}
           />
         )}
+
+        {/* TEST BANNER */}
+        <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-lg">
+          <h2 className="text-red-800 font-bold">🧪 THIS IS THE NEW TEST PAGE</h2>
+          <p className="text-red-700">If you can see this, the new code is working!</p>
+          <p className="text-red-700">Header should have ONLY 2 buttons: ALLOWANCE and ADMIN</p>
+        </div>
 
         {/* Points Header */}
         <div className="text-center mb-8">

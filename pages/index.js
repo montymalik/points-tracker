@@ -1,4 +1,4 @@
-// pages/index.js
+// pages/index.js (Updated to use flexible Header)
 import { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import Dashboard from '../components/Dashboard';
@@ -122,6 +122,7 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header
+        pageType="home"
         onDashboardClick={() => { setShowMonthlyFlow(true); setShowDepositLog(false); }}
         onDepositLogClick={() => { setShowDepositLog(true); setShowMonthlyFlow(false); }}
         onSettingsClick={() => setShowSettingsModal(true)}
@@ -179,4 +180,3 @@ export default function Home() {
     </div>
   );
 }
-
