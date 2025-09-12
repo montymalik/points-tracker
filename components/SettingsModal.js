@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import AdminTasks from './AdminTasks';
 import AdminRewards from './AdminRewards';
 
-export default function SettingsModal({ onClose, onSave, currentValues }) {
+export default function SettingsModal({ onClose, onSave, currentValues, initialTab = 'balance' }) {
   const router = useRouter();
 
   // State for initial authentication to access settings
@@ -19,8 +19,8 @@ export default function SettingsModal({ onClose, onSave, currentValues }) {
     savings: ''
   });
 
-  // State for the current admin tab
-  const [activeTab, setActiveTab] = useState('balance'); // 'balance', 'tasks', 'rewards'
+  // State for the current admin tab - use initialTab prop
+  const [activeTab, setActiveTab] = useState(initialTab); // 'balance', 'tasks', 'rewards'
 
   // State for displaying the reset confirmation
   const [showResetConfirm, setShowResetConfirm] = useState(false);

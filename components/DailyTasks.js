@@ -1,7 +1,7 @@
 // components/DailyTasks.js
 import { useState, useEffect } from 'react';
 
-export default function DailyTasks({ selectedDate = new Date() }) {
+export default function DailyTasks({ selectedDate = new Date(), onPointsUpdate }) {
   const [tasks, setTasks] = useState([]);
   const [completedTasks, setCompletedTasks] = useState(new Set());
   const [loading, setLoading] = useState(true);
@@ -65,7 +65,13 @@ export default function DailyTasks({ selectedDate = new Date() }) {
         if (res.ok) {
           setCompletedTasks(prev => new Set([...prev, taskId]));
           const task = tasks.find(t => t.id === taskId);
-          setTotalPoints(prev => prev + task.points);
+          const newDailyTotal = totalPoints + task.points;
+          setTotalPoints(newDailyTotal);
+          
+          // Notify parent component about points update
+          if (onPointsUpdate) {
+            onPointsUpdate(task.points);
+          }
         } else {
           const error = await res.json();
           alert(error.error || 'Failed to complete task');
@@ -85,7 +91,13 @@ export default function DailyTasks({ selectedDate = new Date() }) {
             return newSet;
           });
           const task = tasks.find(t => t.id === taskId);
-          setTotalPoints(prev => prev - task.points);
+          const newDailyTotal = totalPoints - task.points;
+          setTotalPoints(newDailyTotal);
+          
+          // Notify parent component about points update
+          if (onPointsUpdate) {
+            onPointsUpdate(-task.points);
+          }
         } else {
           const error = await res.json();
           alert(error.error || 'Failed to remove task completion');

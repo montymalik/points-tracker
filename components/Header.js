@@ -1,5 +1,15 @@
-// components/Header.js (Updated)
+// components/Header.js (Fixed Version)
 export default function Header({ onDashboardClick, onDepositLogClick, onSettingsClick }) {
+  const handleAdminClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Header Admin button clicked, calling onSettingsClick');
+    if (onSettingsClick) {
+      onSettingsClick(e);
+    }
+    return false;
+  };
+
   return (
     <header className="bg-blue-600 p-6 shadow-lg text-white">
       <div className="container mx-auto flex justify-between items-center">
@@ -7,12 +17,14 @@ export default function Header({ onDashboardClick, onDepositLogClick, onSettings
         <nav className="space-x-4">
           <button 
             onClick={onDashboardClick}
+            type="button"
             className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
           >
             Spending
           </button>
           <button
             onClick={onDepositLogClick}
+            type="button"
             className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
           >
             Deposit Log
@@ -24,7 +36,8 @@ export default function Header({ onDashboardClick, onDepositLogClick, onSettings
             Points System
           </a>
           <button
-            onClick={onSettingsClick}
+            onClick={handleAdminClick}
+            type="button"
             className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
           >
             Admin

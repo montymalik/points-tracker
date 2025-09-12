@@ -1,9 +1,8 @@
 // components/Rewards.js
 import { useState, useEffect } from 'react';
 
-export default function Rewards() {
+export default function Rewards({ pointsBalance, onPointsUpdate }) {
   const [rewards, setRewards] = useState([]);
-  const [pointsBalance, setPointsBalance] = useState(0);
   const [loading, setLoading] = useState(true);
 
   const fetchRewards = async () => {
@@ -18,22 +17,10 @@ export default function Rewards() {
     }
   };
 
-  const fetchPointsBalance = async () => {
-    try {
-      const res = await fetch('/api/points-balance');
-      if (res.ok) {
-        const data = await res.json();
-        setPointsBalance(data.totalPoints);
-      }
-    } catch (error) {
-      console.error('Error fetching points balance:', error);
-    }
-  };
-
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      await Promise.all([fetchRewards(), fetchPointsBalance()]);
+      await fetchRewards();
       setLoading(false);
     };
     loadData();
@@ -49,7 +36,10 @@ export default function Rewards() {
 
       if (res.ok) {
         const reward = rewards.find(r => r.id === rewardId);
-        setPointsBalance(prev => prev - reward.pointsCost);
+        // Notify parent component about points update
+        if (onPointsUpdate) {
+          onPointsUpdate(-reward.pointsCost);
+        }
         alert(`Successfully redeemed: ${reward.name}! 🎉`);
       } else {
         const error = await res.json();

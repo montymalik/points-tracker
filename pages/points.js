@@ -1,15 +1,17 @@
-// pages/points.js
+// pages/points.js - Step-by-step Header Integration
 import { useState, useEffect } from 'react';
 import Header from '../components/Header';
 import DailyTasks from '../components/DailyTasks';
 import PointsCalendar from '../components/PointsCalendar';
 import Rewards from '../components/Rewards';
 import RedemptionHistory from '../components/RedemptionHistory';
+import SettingsModal from '../components/SettingsModal';
 
 export default function PointsPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [currentView, setCurrentView] = useState('tasks'); // 'tasks', 'rewards', 'history'
+  const [currentView, setCurrentView] = useState('tasks');
   const [pointsBalance, setPointsBalance] = useState(0);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
 
   const fetchPointsBalance = async () => {
     try {
@@ -25,8 +27,7 @@ export default function PointsPage() {
 
   useEffect(() => {
     fetchPointsBalance();
-    // Refresh points balance every 30 seconds
-    const interval = setInterval(fetchPointsBalance, 30000);
+    const interval = setInterval(fetchPointsBalance, 60000);
     return () => clearInterval(interval);
   }, []);
 
@@ -35,28 +36,112 @@ export default function PointsPage() {
     setCurrentView('tasks');
   };
 
+  const handlePointsUpdate = (pointsChange) => {
+    setPointsBalance(prevBalance => {
+      const newBalance = prevBalance + pointsChange;
+      return Math.max(0, newBalance);
+    });
+  };
+
+  // Let's try using the Header component but with our own button
+  const CustomHeader = () => (
+    <header className="bg-blue-600 p-6 shadow-lg text-white">
+      <div className="container mx-auto flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Allowance Tracker</h1>
+        <nav className="space-x-4">
+          <a
+            href="/"
+            className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
+          >
+            Spending
+          </a>
+          <a
+            href="/"
+            className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
+          >
+            Deposit Log
+          </a>
+          <a
+            href="/points"
+            className="bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition duration-200 inline-block"
+          >
+            Points System
+          </a>
+          {/* THIS IS OUR WORKING BUTTON - let's keep it */}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('Custom Header ADMIN BUTTON CLICKED');
+              setShowSettingsModal(true);
+              return false;
+            }}
+            className="bg-white text-blue-600 py-2 px-4 rounded-lg hover:bg-blue-50 transition duration-200"
+            type="button"
+          >
+            Admin
+          </button>
+        </nav>
+      </div>
+    </header>
+  );
+
   const renderCurrentView = () => {
     switch (currentView) {
       case 'tasks':
-        return <DailyTasks selectedDate={selectedDate} />;
+        return (
+          <DailyTasks 
+            selectedDate={selectedDate} 
+            onPointsUpdate={handlePointsUpdate}
+          />
+        );
       case 'rewards':
-        return <Rewards />;
+        return (
+          <Rewards 
+            pointsBalance={pointsBalance}
+            onPointsUpdate={handlePointsUpdate}
+          />
+        );
       case 'history':
         return <RedemptionHistory />;
       default:
-        return <DailyTasks selectedDate={selectedDate} />;
+        return (
+          <DailyTasks 
+            selectedDate={selectedDate} 
+            onPointsUpdate={handlePointsUpdate}
+          />
+        );
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header
-        onDashboardClick={() => window.location.href = '/'}
-        onDepositLogClick={() => window.location.href = '/'}
-        onSettingsClick={() => window.location.href = '/'}
-      />
+      {/* Use our custom header that looks like the original but with working admin button */}
+      <CustomHeader />
       
       <main className="container mx-auto px-4 py-8">
+        {/* Settings Modal */}
+        {showSettingsModal && (
+          <SettingsModal
+            currentValues={{
+              videoGames: 0,
+              generalSpending: 0,
+              charity: 0,
+              savings: 0,
+            }}
+            initialTab="tasks"
+            onClose={() => {
+              console.log('CLOSING MODAL');
+              setShowSettingsModal(false);
+            }}
+            onSave={async () => {
+              console.log('SAVING AND CLOSING MODAL');
+              await fetchPointsBalance();
+              setShowSettingsModal(false);
+            }}
+          />
+        )}
+
         {/* Points Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-blue-600 mb-2">Points System</h1>
@@ -103,14 +188,12 @@ export default function PointsPage() {
 
         {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Calendar Column */}
           <div className="lg:col-span-1">
             <PointsCalendar 
               onDateSelect={handleDateSelect} 
               selectedDate={selectedDate} 
             />
             
-            {/* Quick Stats */}
             <div className="mt-6 bg-white rounded-xl shadow-lg p-4">
               <h3 className="text-lg font-semibold text-gray-900 mb-3">Quick Stats</h3>
               <div className="space-y-2 text-sm">
@@ -131,20 +214,9 @@ export default function PointsPage() {
             </div>
           </div>
 
-          {/* Main Content Column */}
           <div className="lg:col-span-2">
             {renderCurrentView()}
           </div>
-        </div>
-
-        {/* Back to Allowance Tracker */}
-        <div className="text-center mt-8">
-          <a
-            href="/"
-            className="inline-flex items-center px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
-          >
-            ← Back to Allowance Tracker
-          </a>
         </div>
       </main>
     </div>
