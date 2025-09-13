@@ -1,4 +1,4 @@
-// pages/points-new.js - Final Clean Version
+// pages/points.js - Updated to pass pointsBalance to calendar
 import { useState, useEffect } from 'react';
 import DailyTasks from '../components/DailyTasks';
 import PointsCalendar from '../components/PointsCalendar';
@@ -6,7 +6,7 @@ import Rewards from '../components/Rewards';
 import RedemptionHistory from '../components/RedemptionHistory';
 import SettingsModal from '../components/SettingsModal';
 
-export default function PointsNewPage() {
+export default function PointsPage() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [currentView, setCurrentView] = useState('tasks');
   const [pointsBalance, setPointsBalance] = useState(0);
@@ -72,7 +72,7 @@ export default function PointsNewPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Points Page Header - Only 2 buttons as requested */}
+      {/* Points Page Header */}
       <header className="bg-blue-600 p-6 shadow-lg text-white">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-3xl font-bold">Allowance Tracker</h1>
@@ -164,9 +164,11 @@ export default function PointsNewPage() {
         {/* Main Content Area */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1">
+            {/* Pass pointsBalance to calendar for real-time updates */}
             <PointsCalendar 
               onDateSelect={handleDateSelect} 
-              selectedDate={selectedDate} 
+              selectedDate={selectedDate}
+              pointsBalance={pointsBalance}
             />
             
             <div className="mt-6 bg-white rounded-xl shadow-lg p-4">

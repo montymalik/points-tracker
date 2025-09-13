@@ -1,43 +1,86 @@
-// components/PointsCalendar.js
+// components/PointsCalendar.js - Enhanced Version
 import { useState, useEffect } from 'react';
 
-export default function PointsCalendar({ onDateSelect, selectedDate }) {
+export default function PointsCalendar({ onDateSelect, selectedDate, pointsBalance }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [dailyPoints, setDailyPoints] = useState({});
+  const [dailyData, setDailyData] = useState({});
   const [loading, setLoading] = useState(true);
 
   const formatDate = (date) => {
     return date.toISOString().split('T')[0];
   };
 
-  const fetchMonthlyPoints = async (month) => {
+  const fetchMonthlyData = async (month) => {
     try {
       setLoading(true);
       const startDate = new Date(month.getFullYear(), month.getMonth(), 1);
       const endDate = new Date(month.getFullYear(), month.getMonth() + 1, 0);
       
-      const res = await fetch(
+      // Fetch daily points earned from task completions
+      const pointsRes = await fetch(
         `/api/daily-points?startDate=${formatDate(startDate)}&endDate=${formatDate(endDate)}`
       );
       
-      if (res.ok) {
-        const data = await res.json();
-        const pointsMap = {};
-        data.forEach(day => {
-          pointsMap[day.date] = day.totalPoints;
+      // Fetch reward redemptions for the month
+      const redemptionsRes = await fetch('/api/reward-redemptions');
+      
+      if (pointsRes.ok && redemptionsRes.ok) {
+        const pointsData = await pointsRes.json();
+        const redemptionsData = await redemptionsRes.json();
+        
+        // Create a map of daily data
+        const dataMap = {};
+        
+        // Add points earned data
+        pointsData.forEach(day => {
+          dataMap[day.date] = {
+            ...dataMap[day.date],
+            pointsEarned: day.totalPoints,
+            completedTasks: day.completedTasks,
+          };
         });
-        setDailyPoints(pointsMap);
+        
+        // Add redemption data (filter by month)
+        redemptionsData.forEach(redemption => {
+          const redemptionDate = formatDate(new Date(redemption.redeemedDate));
+          if (redemptionDate >= formatDate(startDate) && redemptionDate <= formatDate(endDate)) {
+            if (!dataMap[redemptionDate]) {
+              dataMap[redemptionDate] = {};
+            }
+            if (!dataMap[redemptionDate].redemptions) {
+              dataMap[redemptionDate].redemptions = [];
+            }
+            dataMap[redemptionDate].redemptions.push({
+              pointsSpent: redemption.pointsSpent,
+              rewardName: redemption.reward ? redemption.reward.name : 'Deleted Reward',
+            });
+          }
+        });
+        
+        setDailyData(dataMap);
       }
     } catch (error) {
-      console.error('Error fetching monthly points:', error);
+      console.error('Error fetching monthly data:', error);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchMonthlyPoints(currentMonth);
+    fetchMonthlyData(currentMonth);
   }, [currentMonth]);
+
+  // Refetch data when pointsBalance changes (for real-time updates)
+  useEffect(() => {
+    const today = formatDate(new Date());
+    const currentMonthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+    const currentMonthEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+    
+    // Only refetch if today is in the current displayed month
+    if (today >= formatDate(currentMonthStart) && today <= formatDate(currentMonthEnd)) {
+      fetchMonthlyData(currentMonth);
+    }
+  }, [pointsBalance]);
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
@@ -80,6 +123,12 @@ export default function PointsCalendar({ onDateSelect, selectedDate }) {
     return formatDate(date) === formatDate(selectedDate);
   };
 
+  const getDayData = (date) => {
+    if (!date) return null;
+    const dateStr = formatDate(date);
+    return dailyData[dateStr] || {};
+  };
+
   const days = getDaysInMonth(currentMonth);
 
   return (
@@ -116,34 +165,67 @@ export default function PointsCalendar({ onDateSelect, selectedDate }) {
         <div className="grid grid-cols-7 gap-1">
           {days.map((date, index) => {
             if (!date) {
-              return <div key={index} className="h-12"></div>;
+              return <div key={index} className="h-16"></div>;
             }
 
-            const dateStr = formatDate(date);
-            const points = dailyPoints[dateStr] || 0;
-            const hasPoints = points > 0;
+            const dayData = getDayData(date);
+            const pointsEarned = dayData.pointsEarned || 0;
+            const redemptions = dayData.redemptions || [];
+            const hasActivity = pointsEarned > 0 || redemptions.length > 0;
+
+            // Calculate total points spent on redemptions for this day
+            const totalPointsSpent = redemptions.reduce((sum, r) => sum + r.pointsSpent, 0);
 
             return (
               <button
                 key={index}
                 onClick={() => onDateSelect(date)}
                 className={`
-                  h-12 flex flex-col items-center justify-center text-xs border rounded-lg transition-colors
+                  h-16 flex flex-col items-center justify-center text-xs border rounded-lg transition-colors relative
                   ${isSelected(date) 
                     ? 'bg-blue-500 text-white border-blue-500' 
                     : isToday(date)
                     ? 'bg-blue-100 text-blue-800 border-blue-200'
-                    : hasPoints
+                    : hasActivity
                     ? 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100'
                     : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
                   }
                 `}
               >
                 <span className="font-medium">{date.getDate()}</span>
-                {hasPoints && (
-                  <span className={`text-xs ${isSelected(date) ? 'text-white' : 'text-green-600'}`}>
-                    {points}pt
+                
+                {/* Points Earned */}
+                {pointsEarned > 0 && (
+                  <span className={`text-xs font-semibold ${
+                    isSelected(date) ? 'text-white' : 'text-green-600'
+                  }`}>
+                    +{pointsEarned}
                   </span>
+                )}
+                
+                {/* Redemptions Indicator */}
+                {redemptions.length > 0 && (
+                  <div className={`text-xs font-semibold ${
+                    isSelected(date) ? 'text-white' : 'text-red-600'
+                  }`}>
+                    -{totalPointsSpent}
+                  </div>
+                )}
+                
+                {/* Activity indicator dots */}
+                {hasActivity && (
+                  <div className="absolute top-1 right-1 flex space-x-1">
+                    {pointsEarned > 0 && (
+                      <div className={`w-2 h-2 rounded-full ${
+                        isSelected(date) ? 'bg-white' : 'bg-green-500'
+                      }`}></div>
+                    )}
+                    {redemptions.length > 0 && (
+                      <div className={`w-2 h-2 rounded-full ${
+                        isSelected(date) ? 'bg-white' : 'bg-red-500'
+                      }`}></div>
+                    )}
+                  </div>
                 )}
               </button>
             );
@@ -151,8 +233,19 @@ export default function PointsCalendar({ onDateSelect, selectedDate }) {
         </div>
       )}
 
-      <div className="mt-4 text-xs text-gray-500 text-center">
-        Click a date to view tasks for that day
+      {/* Legend */}
+      <div className="mt-4 text-xs text-gray-500">
+        <div className="flex flex-wrap gap-4 justify-center">
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span>Points Earned</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+            <span>Rewards Redeemed</span>
+          </div>
+        </div>
+        <div className="text-center mt-2">Click a date to view details</div>
       </div>
     </div>
   );
